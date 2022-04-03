@@ -2,8 +2,7 @@
     <string name="app_name">FileEncryptionManager</string>
     <string name="title_home">Encrypt</string>
     <string name="title_dashboard">Decrypt</string>
-    <string name="button">Button</string>
-    <string name="name">Name</string>
-    <string name="password">Password</string>
     <string name="encrypt_file">Encrypt file</string>
+    <string name="decrypt_file">Decrypt file</string>
+    <string name="password">Password</string>
 </resources>

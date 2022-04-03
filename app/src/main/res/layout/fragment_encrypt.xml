@@ -7,7 +7,7 @@
     tools:context=".ui.Encrypt.EncryptFragment">
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/encryptButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginStart="70dp"
@@ -25,12 +25,13 @@
 
 
     <EditText
-        android:id="@+id/editTextPassword"
+        android:id="@+id/editTextPasswordE"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:ems="10"
         android:inputType="text"
-        android:text="@string/password"
+        android:text=""
+        android:hint="@string/password"
         tools:layout_editor_absoluteX="100dp"
         tools:layout_editor_absoluteY="81dp"
         android:layout_marginStart="70dp"
@@ -38,7 +39,8 @@
         android:layout_marginEnd="70dp"
         android:textAlignment="textStart"
         android:textSize="20sp"
-        tools:ignore="MissingConstraints,TextFields" />
+        tools:ignore="LabelFor,MissingConstraints,TextFields"
+        android:autofillHints="no" />
 
 
 

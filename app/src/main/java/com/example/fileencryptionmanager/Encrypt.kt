@@ -1,9 +1,8 @@
 package com.example.fileencryptionmanager
 
-import java.security.Key
-import java.security.SecureRandom
-import javax.crypto.Cipher
-import javax.crypto.SecretKeyFactory
+import java.security.*
+import java.security.spec.InvalidKeySpecException
+import javax.crypto.*
 import javax.crypto.spec.IvParameterSpec
 import javax.crypto.spec.PBEKeySpec
 
@@ -19,7 +18,9 @@ class Encrypt {
         val PBK_ITERATIONS = 1000
         val ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding"
         val PBE_ALGORITHM = "PBEwithSHA256and128BITAES-CBC-BC"
-        var encDataStatic: ByteArray? = null
+        var encDataStatic: Encrypt? = null
+        var decDataStatic: ByteArray? = null
+
 
         @JvmStatic
         fun encrypt(password: String, data: ByteArray): Encrypt {
@@ -40,11 +41,25 @@ class Encrypt {
         }
 
         @JvmStatic
-        fun decrypt(password: String, salt: ByteArray?, iv: ByteArray?, encryptedData: ByteArray?): ByteArray {
+        @Throws(
+            NoSuchAlgorithmException::class,
+            InvalidKeySpecException::class,
+            NoSuchPaddingException::class,
+            InvalidKeyException::class,
+            BadPaddingException::class,
+            IllegalBlockSizeException::class,
+            InvalidAlgorithmParameterException::class
+        )
+        fun decrypt(
+            password: String,
+            salt: ByteArray,
+            iv: ByteArray,
+            encryptedData: ByteArray
+        ): ByteArray? {
             val keySpec = PBEKeySpec(password.toCharArray(), salt, PBK_ITERATIONS)
-            val secretKeyFactory: SecretKeyFactory = SecretKeyFactory.getInstance(PBE_ALGORITHM)
+            val secretKeyFactory = SecretKeyFactory.getInstance(PBE_ALGORITHM)
             val key: Key = secretKeyFactory.generateSecret(keySpec)
-            val cipher: Cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
+            val cipher = Cipher.getInstance("AES/CBC/PKCS5Padding")
             val ivSpec = IvParameterSpec(iv)
             cipher.init(Cipher.DECRYPT_MODE, key, ivSpec)
             return cipher.doFinal(encryptedData)

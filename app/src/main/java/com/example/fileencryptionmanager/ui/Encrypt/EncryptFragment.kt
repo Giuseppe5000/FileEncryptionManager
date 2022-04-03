@@ -1,22 +1,24 @@
 package com.example.fileencryptionmanager.ui.Encrypt
 
-import android.annotation.SuppressLint
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
 import android.widget.EditText
-import androidx.annotation.RequiresApi
+import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.fileencryptionmanager.Encrypt
+import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentEncryptBinding
 import java.io.*
+
 
 class EncryptFragment : Fragment() {
 
@@ -26,8 +28,6 @@ class EncryptFragment : Fragment() {
     // onDestroyView.
     private val binding get() = _binding!!
 
-    @RequiresApi(Build.VERSION_CODES.O)
-    @SuppressLint("GetInstance")
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -37,26 +37,30 @@ class EncryptFragment : Fragment() {
         _binding = FragmentEncryptBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val button: Button = binding.button
+        val button: Button = binding.encryptButton
         button.setOnClickListener {
 
-            // File manager selection
-            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                addCategory(Intent.CATEGORY_OPENABLE)
-                type = "*/*"
+            if (binding.editTextPasswordE.text.isEmpty()) {
+                Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
+            } else {
+                // File manager selection
+                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                    addCategory(Intent.CATEGORY_OPENABLE)
+                    type = "*/*"
 
-                // Optionally, specify a URI for the file that should appear in the
-                // system file picker when it loads.
-                putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+                    // Optionally, specify a URI for the file that should appear in the
+                    // system file picker when it loads.
+                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+                }
+                startActivityForResult(intent, 1)
             }
-            startActivityForResult(intent, 1)
 
         }
 
         return root
     }
 
-    fun EncryptData(uri: Uri) {
+    private fun EncryptData(uri: Uri) {
 
         // Read file
         val stringBuilder = StringBuilder()
@@ -71,25 +75,23 @@ class EncryptFragment : Fragment() {
         }
 
         //Get password
-        val password: EditText = binding.editTextPassword
+        val password: EditText = binding.editTextPasswordE
 
         //Encrypt
-        val encData =
-            Encrypt.encrypt(password.text.toString(), stringBuilder.toString().toByteArray())
+        val encData = Encrypt.encrypt(password.text.toString(), stringBuilder.toString().toByteArray())
 
-        // Set encrypted data to a static varible
-        Encrypt.encDataStatic = encData.encryptedData!!
+        // Set encrypted data to a static variable
+        Encrypt.encDataStatic = encData
 
         // Create encrypted file
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "application/txt"
-            putExtra(Intent.EXTRA_TITLE, "file.enc")
+            type = "application/octet-stream"
+            putExtra(Intent.EXTRA_TITLE, "file")
 
             // Optionally, specify a URI for the directory that should be opened in
             // the system file picker before your app creates the document.
             putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
-            putExtra("ENC_DATA", encData.encryptedData)
         }
         startActivityForResult(intent, 2)
 
@@ -105,12 +107,29 @@ class EncryptFragment : Fragment() {
                 EncryptData(uri)
             }
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
+
+            // SQLite
+            val dbHelper = context?.let { FeedReaderDbHelper(it) }
+
+            // Gets the data repository in write mode
+            val db = dbHelper?.writableDatabase
+
+            val values = ContentValues().apply {
+                put(FeedReaderDbHelper.FeedReaderContract.FeedEntry.NAME, resultData?.data.toString())
+                put(FeedReaderDbHelper.FeedReaderContract.FeedEntry.SALT, Encrypt.encDataStatic?.salt)
+                put(FeedReaderDbHelper.FeedReaderContract.FeedEntry.IV, Encrypt.encDataStatic?.iv)
+            }
+
+            // Insert the new row, returning the primary key value of the new row
+            val newRowId = db?.insert(FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME, null, values)
+
             resultData?.data.also { uri ->
                 try {
+
                     if (uri != null) {
                         requireActivity().contentResolver.openFileDescriptor(uri, "w")?.use { it ->
                             FileOutputStream(it.fileDescriptor).use {
-                                it.write(Encrypt.encDataStatic)
+                                it.write(Base64.encodeToString(Encrypt.encDataStatic?.encryptedData, Base64.DEFAULT).toByteArray())
                             }
                         }
                     }
@@ -124,6 +143,9 @@ class EncryptFragment : Fragment() {
 
         }
     }
+
+
+
 
     override fun onDestroyView() {
         super.onDestroyView()
