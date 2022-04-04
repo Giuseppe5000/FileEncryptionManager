@@ -5,7 +5,6 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Base64
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,7 +17,7 @@ import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentDecryptBinding
 import java.io.*
-import java.nio.charset.Charset
+
 
 class DecryptFragment : Fragment() {
 
@@ -64,14 +63,13 @@ class DecryptFragment : Fragment() {
     private fun DecryptData(uri: Uri) {
 
         // Read file
-        val stringBuilder = StringBuilder()
-        requireActivity().contentResolver.openInputStream(uri)?.use { inputStream ->
-            BufferedReader(InputStreamReader(inputStream)).use { reader ->
-                var line: String? = reader.readLine()
-                while (line != null) {
-                    stringBuilder.append(line)
-                    line = reader.readLine()
-                }
+        var bytes: ByteArray? = null
+        requireActivity().contentResolver.openFileDescriptor(uri, "r").use { it ->
+            FileInputStream(
+                it?.fileDescriptor
+            ).use {
+                bytes = it.readBytes()
+                it.close()
             }
         }
 
@@ -82,6 +80,7 @@ class DecryptFragment : Fragment() {
         val db = dbHelper?.readableDatabase
 
         val projection = arrayOf(
+            FeedReaderDbHelper.FeedReaderContract.FeedEntry.MIMETYPE,
             FeedReaderDbHelper.FeedReaderContract.FeedEntry.SALT,
             FeedReaderDbHelper.FeedReaderContract.FeedEntry.IV
         )
@@ -101,10 +100,11 @@ class DecryptFragment : Fragment() {
             sortOrder
         )
 
-        // Get salt and iv
+        // Get mimetype, salt and iv
         cursor?.moveToFirst()
-        val salt: ByteArray = cursor!!.getBlob(0)
-        val iv: ByteArray = cursor.getBlob(1)
+        val mimetype: String = cursor!!.getString(0)
+        val salt: ByteArray = cursor.getBlob(1)
+        val iv: ByteArray = cursor.getBlob(2)
         cursor.close()
 
 
@@ -116,7 +116,7 @@ class DecryptFragment : Fragment() {
             password.text.toString(),
             salt,
             iv,
-            Base64.decode(stringBuilder.toString(), Base64.DEFAULT)
+            bytes!!
         )
 
         // Set decrypted data to a static variable
@@ -125,7 +125,7 @@ class DecryptFragment : Fragment() {
         // Create decrypted file
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
-            type = "text/plain"
+            type = mimetype
             putExtra(Intent.EXTRA_TITLE, "decfile")
 
             // Optionally, specify a URI for the directory that should be opened in
@@ -138,9 +138,11 @@ class DecryptFragment : Fragment() {
         DocumentsContract.deleteDocument(requireActivity().contentResolver, uri)
 
         //Delete uri row from DB
-        val delSelection = "${FeedReaderDbHelper.FeedReaderContract.FeedEntry.NAME} LIKE ?"
-        val delSelectionArgs = arrayOf(uri.toString())
-        val deletedRows = db.delete(FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME, selection, selectionArgs)
+        val deletedRows = db.delete(
+            FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
+            selection,
+            selectionArgs
+        )
 
     }
 
@@ -160,6 +162,8 @@ class DecryptFragment : Fragment() {
                         requireActivity().contentResolver.openFileDescriptor(uri, "w")?.use { it ->
                             FileOutputStream(it.fileDescriptor).use {
                                 it.write(Encrypt.decDataStatic)
+                                it.flush()
+                                it.close()
                             }
                         }
                     }

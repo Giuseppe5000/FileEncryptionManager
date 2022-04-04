@@ -10,17 +10,19 @@ class Encrypt {
     var salt: ByteArray? = null
     var iv: ByteArray? = null
     var encryptedData: ByteArray? = null
+    var mimetype: String? = null
 
     companion object {
         //This annotation tells Java classes to treat this method as if it was a static to [KotlinClass]
+
+        const val SALT_BYTES = 8
+        const val PBK_ITERATIONS = 1000
+        const val ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding"
+        const val PBE_ALGORITHM = "PBEwithSHA256and128BITAES-CBC-BC"
+
         @JvmStatic
-        val SALT_BYTES = 8
-        val PBK_ITERATIONS = 1000
-        val ENCRYPTION_ALGORITHM = "AES/CBC/PKCS5Padding"
-        val PBE_ALGORITHM = "PBEwithSHA256and128BITAES-CBC-BC"
         var encDataStatic: Encrypt? = null
         var decDataStatic: ByteArray? = null
-
 
         @JvmStatic
         fun encrypt(password: String, data: ByteArray): Encrypt {

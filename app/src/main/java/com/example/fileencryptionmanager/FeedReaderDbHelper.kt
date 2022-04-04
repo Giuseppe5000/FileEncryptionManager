@@ -21,7 +21,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
     companion object {
         // If you change the database schema, you must increment the database version.
         const val DATABASE_VERSION = 1
-        const val DATABASE_NAME = "FeedReader.db"
+        const val DATABASE_NAME = "FileEncryptionManager.db"
     }
 
     // SQLite
@@ -30,6 +30,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         object FeedEntry : BaseColumns {
             const val TABLE_NAME = "File"
             const val NAME = "name"
+            const val MIMETYPE = "mimetype"
             const val SALT = "salt"
             const val IV = "iv"
         }
@@ -39,6 +40,7 @@ class FeedReaderDbHelper(context: Context) : SQLiteOpenHelper(context, DATABASE_
         "CREATE TABLE ${FeedReaderContract.FeedEntry.TABLE_NAME} (" +
                 "${BaseColumns._ID} INTEGER PRIMARY KEY," +
                 "${FeedReaderContract.FeedEntry.NAME} TEXT," +
+                "${FeedReaderContract.FeedEntry.MIMETYPE} TEXT," +
                 "${FeedReaderContract.FeedEntry.SALT} BLOB," +
                 "${FeedReaderContract.FeedEntry.IV} BLOB)"
 
