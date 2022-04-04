@@ -17,6 +17,7 @@ import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentDecryptBinding
 import java.io.*
+import java.security.MessageDigest
 
 
 class DecryptFragment : Fragment() {
@@ -73,6 +74,12 @@ class DecryptFragment : Fragment() {
             }
         }
 
+        //MD5 Checksum
+        val md = MessageDigest
+            .getInstance("MD5")
+            .digest(bytes)
+        val md5 = md.joinToString("") { "%02x".format(it) }
+
         // Select salt and iv from DB
         val dbHelper = context?.let { FeedReaderDbHelper(it) }
 
@@ -85,10 +92,10 @@ class DecryptFragment : Fragment() {
             FeedReaderDbHelper.FeedReaderContract.FeedEntry.IV
         )
 
-        val selection = "${FeedReaderDbHelper.FeedReaderContract.FeedEntry.NAME} = ?"
-        val selectionArgs = arrayOf(uri.toString())
+        val selection = "${FeedReaderDbHelper.FeedReaderContract.FeedEntry.MD5SUM} = ?"
+        val selectionArgs = arrayOf(md5)
 
-        val sortOrder = "${FeedReaderDbHelper.FeedReaderContract.FeedEntry.NAME} DESC"
+        val sortOrder = "${FeedReaderDbHelper.FeedReaderContract.FeedEntry.MD5SUM} DESC"
 
         val cursor = db?.query(
             FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,   // The table to query
@@ -134,15 +141,17 @@ class DecryptFragment : Fragment() {
         }
         startActivityForResult(intent, 2)
 
-        // Delete encrypted file
-        DocumentsContract.deleteDocument(requireActivity().contentResolver, uri)
+        if (binding.delCheckBox.isChecked) {
+            // Delete encrypted file
+            DocumentsContract.deleteDocument(requireActivity().contentResolver, uri)
 
-        //Delete uri row from DB
-        val deletedRows = db.delete(
-            FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
-            selection,
-            selectionArgs
-        )
+            //Delete uri row from DB
+            val deletedRows = db.delete(
+                FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
+                selection,
+                selectionArgs
+            )
+        }
 
     }
 

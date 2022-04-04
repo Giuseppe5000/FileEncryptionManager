@@ -6,6 +6,7 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
 import android.provider.DocumentsContract
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,7 +18,7 @@ import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentEncryptBinding
 import java.io.*
-
+import java.security.MessageDigest
 
 class EncryptFragment : Fragment() {
 
@@ -109,6 +110,12 @@ class EncryptFragment : Fragment() {
             }
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
 
+            //MD5 Checksum
+            val md = MessageDigest
+                .getInstance("MD5")
+                .digest(Encrypt.encDataStatic!!.encryptedData)
+            val md5 = md.joinToString("") { "%02x".format(it) }
+
             // SQLite
             val dbHelper = context?.let { FeedReaderDbHelper(it) }
 
@@ -117,8 +124,8 @@ class EncryptFragment : Fragment() {
 
             val values = ContentValues().apply {
                 put(
-                    FeedReaderDbHelper.FeedReaderContract.FeedEntry.NAME,
-                    resultData?.data.toString()
+                    FeedReaderDbHelper.FeedReaderContract.FeedEntry.MD5SUM,
+                    md5
                 )
                 put(
                     FeedReaderDbHelper.FeedReaderContract.FeedEntry.MIMETYPE,
@@ -140,6 +147,8 @@ class EncryptFragment : Fragment() {
                 null,
                 values
             )
+
+
 
             resultData?.data.also { uri ->
                 try {

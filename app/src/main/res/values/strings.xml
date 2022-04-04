@@ -5,4 +5,5 @@
     <string name="encrypt_file">Encrypt file</string>
     <string name="decrypt_file">Decrypt file</string>
     <string name="password">Password</string>
+    <string name="delete_encrypted_file">Delete encrypted file</string>
 </resources>
