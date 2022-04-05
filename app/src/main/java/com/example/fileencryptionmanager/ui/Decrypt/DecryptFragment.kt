@@ -83,7 +83,7 @@ class DecryptFragment : Fragment() {
         // Select salt and iv from DB
         val dbHelper = context?.let { FeedReaderDbHelper(it) }
 
-        // Gets the data repository in write mode
+        // Gets the data repository in read mode
         val db = dbHelper?.readableDatabase
 
         val projection = arrayOf(
