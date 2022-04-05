@@ -1,11 +1,11 @@
 package com.example.fileencryptionmanager.ui.Export;
 
 import android.app.Activity
+import android.content.ContentValues
 import android.content.Intent
 import android.database.CursorIndexOutOfBoundsException
 import android.os.Bundle
 import android.provider.DocumentsContract
-import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -13,12 +13,11 @@ import android.widget.Button
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
-import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentExportBinding
 import com.example.prova.ui.notifications.ExportViewModel
 import org.json.JSONArray
-import org.json.JSONObject
+import java.io.FileInputStream
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 import java.io.IOException
@@ -75,18 +74,20 @@ class ExportFragment : Fragment() {
                 cursor?.moveToFirst()
 
                 val jsonString = StringBuilder("[")
-                while (cursor!!.moveToNext()) {
-                    val md5 = cursor.getString(0)
-                    val mimetype = cursor.getString(1)
-                    val salt = cursor.getBlob(2).contentToString()
-                    val iv = cursor.getBlob(3).contentToString()
-                    if (cursor.isLast) {
-                        jsonString.append("[\"$md5\", \"$mimetype\", $salt, $iv]")
+                do {
+                    val md5 = "\"${cursor?.getString(0)}\""
+                    val mimetype = "\"${cursor?.getString(1)}\""
+                    val salt = cursor?.getBlob(2).contentToString()
+                    val iv = cursor?.getBlob(3).contentToString()
+
+                    if (cursor?.isLast!!) {
+                        jsonString.append("[$md5, $mimetype, $salt, $iv]")
                     } else {
-                        jsonString.append("[\"$md5\", \"$mimetype\", $salt, $iv],")
+                        jsonString.append("[$md5, $mimetype, $salt, $iv],")
                     }
 
-                }
+                } while (cursor!!.moveToNext())
+
                 jsonString.append("]")
 
                 val jsonArray = JSONArray(jsonString.toString())
@@ -110,6 +111,23 @@ class ExportFragment : Fragment() {
                 Toast.makeText(requireActivity(), "No data in DB", Toast.LENGTH_SHORT).show()
                 cursor?.close()
             }
+
+        }
+
+        val importButton: Button = binding.importButton
+        importButton.setOnClickListener {
+
+            // Select json DB file
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/json"
+
+                // Optionally, specify a URI for the file that should appear in the
+                // system file picker when it loads.
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+            }
+            startActivityForResult(intent, 2)
+
 
         }
 
@@ -138,6 +156,74 @@ class ExportFragment : Fragment() {
                 }
 
             }
+        } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
+            resultData?.data.also { uri ->
+                var bytes: ByteArray? = null
+                if (uri != null) {
+                    requireActivity().contentResolver.openFileDescriptor(uri, "r").use { it ->
+                        FileInputStream(
+                            it?.fileDescriptor
+                        ).use {
+                            bytes = it.readBytes()
+                            it.close()
+                        }
+                    }
+                }
+
+                //Read json data
+                val json = JSONArray(String(bytes!!))
+                for (i in 0 until json.length()) {
+
+                    val jsonarray = json.getJSONArray(i)
+                    val md5 = jsonarray.getString(0)
+                    val mimetype = jsonarray.getString(1)
+
+                    val salt = ByteArray(8)
+                    for (j in 0 until jsonarray.getJSONArray(2).length()) {
+                        salt[j] = jsonarray.getJSONArray(2).getInt(j).toByte()
+                    }
+
+                    val iv = ByteArray(16)
+                    for (j in 0 until jsonarray.getJSONArray(3).length()) {
+                        iv[j] = jsonarray.getJSONArray(3).getInt(j).toByte()
+                    }
+
+
+                    // SQLite conenct
+                    val dbHelper = context?.let { FeedReaderDbHelper(it) }
+
+                    // Gets the data repository in write mode
+                    val db = dbHelper?.writableDatabase
+
+                    val values = ContentValues().apply {
+                        put(
+                            FeedReaderDbHelper.FeedReaderContract.FeedEntry.MD5SUM,
+                            md5
+                        )
+                        put(
+                            FeedReaderDbHelper.FeedReaderContract.FeedEntry.MIMETYPE,
+                            mimetype
+                        )
+                        put(
+                            FeedReaderDbHelper.FeedReaderContract.FeedEntry.SALT,
+                            salt
+                        )
+                        put(
+                            FeedReaderDbHelper.FeedReaderContract.FeedEntry.IV,
+                            iv
+                        )
+                    }
+
+                    // Insert the new row, returning the primary key value of the new row
+                    val newRowId = db?.insert(
+                        FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
+                        null,
+                        values
+                    )
+
+                }
+            }
+
         }
     }
 
