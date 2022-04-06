@@ -37,8 +37,6 @@ class ExportFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val notificationsViewModel =
-            ViewModelProvider(this).get(ExportViewModel::class.java)
 
         _binding = FragmentExportBinding.inflate(inflater, container, false)
         val root: View = binding.root

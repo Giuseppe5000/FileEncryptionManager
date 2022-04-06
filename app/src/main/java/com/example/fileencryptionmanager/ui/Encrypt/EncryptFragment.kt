@@ -57,10 +57,16 @@ class EncryptFragment : Fragment() {
         val encryptButton: Button = binding.encryptButton
         encryptButton.setOnClickListener {
 
-            if (binding.editTextPasswordE.text.isEmpty()) {
-                Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
-            } else {
-                EncryptData(fileUri!!)
+            when {
+                fileUri == null -> {
+                    Toast.makeText(requireActivity(), "Select a file!", Toast.LENGTH_SHORT).show()
+                }
+                binding.editTextPasswordE.text.isEmpty() -> {
+                    Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    EncryptData(fileUri!!)
+                }
             }
 
         }
@@ -125,7 +131,7 @@ class EncryptFragment : Fragment() {
             //MD5 Checksum
             val md = MessageDigest
                 .getInstance("MD5")
-                .digest(Encrypt.encDataStatic!!.encryptedData)
+                .digest(Encrypt.encDataStatic!!.encryptedData!!)
             val md5 = md.joinToString("") { "%02x".format(it) }
 
             // SQLite
@@ -159,6 +165,9 @@ class EncryptFragment : Fragment() {
                 null,
                 values
             )
+
+            //Set to null fileUri
+            fileUri = null
 
 
             resultData?.data.also { uri ->

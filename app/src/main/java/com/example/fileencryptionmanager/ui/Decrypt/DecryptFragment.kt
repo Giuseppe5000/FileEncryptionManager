@@ -18,7 +18,9 @@ import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
 import com.example.fileencryptionmanager.databinding.FragmentDecryptBinding
 import java.io.*
+import java.lang.reflect.InvocationTargetException
 import java.security.MessageDigest
+import javax.crypto.BadPaddingException
 
 
 class DecryptFragment : Fragment() {
@@ -36,8 +38,6 @@ class DecryptFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-        val dashboardViewModel =
-            ViewModelProvider(this).get(DecryptViewModel::class.java)
 
         _binding = FragmentDecryptBinding.inflate(inflater, container, false)
         val root: View = binding.root
@@ -58,10 +58,17 @@ class DecryptFragment : Fragment() {
 
         val button: Button = binding.decryptButton
         button.setOnClickListener {
-            if (binding.editTextPasswordD.text.isEmpty()) {
-                Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
-            } else {
-                DecryptData(fileUri!!)
+
+            when {
+                fileUri == null -> {
+                    Toast.makeText(requireActivity(), "Select a file!", Toast.LENGTH_SHORT).show()
+                }
+                binding.editTextPasswordD.text.isEmpty() -> {
+                    Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
+                }
+                else -> {
+                    DecryptData(fileUri!!)
+                }
             }
 
         }
@@ -126,40 +133,53 @@ class DecryptFragment : Fragment() {
         // Get password
         val password: EditText = binding.editTextPasswordD
 
-        //Decrypt
-        val decData = Encrypt.decrypt(
-            password.text.toString(),
-            salt,
-            iv,
-            bytes!!
-        )
+        val wrongPassword = Toast.makeText(requireActivity(), "Wrong password!", Toast.LENGTH_SHORT)
 
-        // Set decrypted data to a static variable
-        Encrypt.decDataStatic = decData
-
-        // Create decrypted file
-        val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
-            addCategory(Intent.CATEGORY_OPENABLE)
-            type = mimetype
-            putExtra(Intent.EXTRA_TITLE, "decfile")
-
-            // Optionally, specify a URI for the directory that should be opened in
-            // the system file picker before your app creates the document.
-            putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
-        }
-        startActivityForResult(intent, 2)
-
-        if (binding.delCheckBox.isChecked) {
-            // Delete encrypted file
-            DocumentsContract.deleteDocument(requireActivity().contentResolver, uri)
-
-            //Delete uri row from DB
-            val deletedRows = db.delete(
-                FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
-                selection,
-                selectionArgs
+        try {
+            //Decrypt
+            val decData = Encrypt.decrypt(
+                password.text.toString(),
+                salt,
+                iv,
+                bytes!!
             )
+
+            // Set decrypted data to a static variable
+            Encrypt.decDataStatic = decData
+
+            // Create decrypted file
+            val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = mimetype
+                putExtra(Intent.EXTRA_TITLE, "decfile")
+
+                // Optionally, specify a URI for the directory that should be opened in
+                // the system file picker before your app creates the document.
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+            }
+            startActivityForResult(intent, 2)
+
+            if (binding.delCheckBox.isChecked) {
+                // Delete encrypted file
+                DocumentsContract.deleteDocument(requireActivity().contentResolver, uri)
+
+                //Delete uri row from DB
+                val deletedRows = db.delete(
+                    FeedReaderDbHelper.FeedReaderContract.FeedEntry.TABLE_NAME,
+                    selection,
+                    selectionArgs
+                )
+            }
+
+        } catch(e: RuntimeException) {
+            wrongPassword.show()
+        } catch (e: InvocationTargetException) {
+            wrongPassword.show()
+        } catch (e: BadPaddingException) {
+            wrongPassword.show()
         }
+
+
 
     }
 
@@ -175,6 +195,10 @@ class DecryptFragment : Fragment() {
                 binding.selectDecFile.text = "{ ${File(uri.path!!).name} }"
             }
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
+
+            //Set to null fileUri
+            fileUri = null
+
             resultData?.data.also { uri ->
                 try {
                     if (uri != null) {
