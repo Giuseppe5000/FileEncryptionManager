@@ -1,5 +1,6 @@
 package com.example.fileencryptionmanager.ui.Encrypt
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.ContentValues
 import android.content.Intent
@@ -15,11 +16,14 @@ import android.widget.Toast
 import androidx.fragment.app.Fragment
 import com.example.fileencryptionmanager.Encrypt
 import com.example.fileencryptionmanager.FeedReaderDbHelper
+import com.example.fileencryptionmanager.R
 import com.example.fileencryptionmanager.databinding.FragmentEncryptBinding
 import java.io.*
 import java.security.MessageDigest
 
 class EncryptFragment : Fragment() {
+
+    private var fileUri: Uri? = null
 
     private var _binding: FragmentEncryptBinding? = null
 
@@ -36,22 +40,27 @@ class EncryptFragment : Fragment() {
         _binding = FragmentEncryptBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
-        val button: Button = binding.encryptButton
-        button.setOnClickListener {
+        val selectFileButton:Button = binding.selectEncFile
+        selectFileButton.setOnClickListener {
+            // File manager selection
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "*/*"
+
+                // Optionally, specify a URI for the file that should appear in the
+                // system file picker when it loads.
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+            }
+            startActivityForResult(intent, 1)
+        }
+
+        val encryptButton: Button = binding.encryptButton
+        encryptButton.setOnClickListener {
 
             if (binding.editTextPasswordE.text.isEmpty()) {
                 Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
             } else {
-                // File manager selection
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "*/*"
-
-                    // Optionally, specify a URI for the file that should appear in the
-                    // system file picker when it loads.
-                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
-                }
-                startActivityForResult(intent, 1)
+                EncryptData(fileUri!!)
             }
 
         }
@@ -83,6 +92,8 @@ class EncryptFragment : Fragment() {
         Encrypt.encDataStatic = encData
         Encrypt.encDataStatic!!.mimetype = requireActivity().contentResolver.getType(uri)!!
 
+        binding.selectEncFile.text = getString(R.string.select_file)
+
         // Create encrypted file
         val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
             addCategory(Intent.CATEGORY_OPENABLE)
@@ -97,6 +108,7 @@ class EncryptFragment : Fragment() {
 
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
 
         super.onActivityResult(requestCode, resultCode, resultData)
@@ -105,7 +117,8 @@ class EncryptFragment : Fragment() {
             // The result data contains a URI for the document or directory that
             // the user selected.
             resultData?.data.also { uri ->
-                uri?.let { EncryptData(it) }
+                fileUri = uri
+                binding.selectEncFile.text = "{ ${File(uri?.path!!).name} }"
             }
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
 
@@ -146,7 +159,6 @@ class EncryptFragment : Fragment() {
                 null,
                 values
             )
-
 
 
             resultData?.data.also { uri ->

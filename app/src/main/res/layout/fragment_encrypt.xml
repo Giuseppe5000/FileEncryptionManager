@@ -7,6 +7,40 @@
     tools:context=".ui.Encrypt.EncryptFragment">
 
     <Button
+        android:id="@+id/selectEncFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="70dp"
+        android:layout_marginBottom="40dp"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/editTextPasswordE"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/select_file"
+        android:textAllCaps="false"/>
+
+    <EditText
+        android:id="@+id/editTextPasswordE"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:hint="@string/password"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="70dp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/encryptButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="LabelFor,MissingConstraints,TextFields"
+        android:autofillHints="no" />
+
+    <Button
         android:id="@+id/encryptButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,28 +54,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:text="@string/encrypt_file"
-        tools:layout_editor_absoluteX="276dp"
-        tools:layout_editor_absoluteY="651dp" />
-
-
-    <EditText
-        android:id="@+id/editTextPasswordE"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="text"
-        android:text=""
-        android:hint="@string/password"
-        tools:layout_editor_absoluteX="100dp"
-        tools:layout_editor_absoluteY="81dp"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="70dp"
-        android:textAlignment="textStart"
-        android:textSize="20sp"
-        tools:ignore="LabelFor,MissingConstraints,TextFields"
-        android:autofillHints="no" />
-
-
+        android:textAllCaps="false"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

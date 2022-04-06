@@ -1,5 +1,6 @@
 package com.example.fileencryptionmanager.ui.Decrypt
 
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -22,6 +23,8 @@ import java.security.MessageDigest
 
 class DecryptFragment : Fragment() {
 
+    private var fileUri: Uri? = null
+
     private var _binding: FragmentDecryptBinding? = null
 
     // This property is only valid between onCreateView and
@@ -39,21 +42,26 @@ class DecryptFragment : Fragment() {
         _binding = FragmentDecryptBinding.inflate(inflater, container, false)
         val root: View = binding.root
 
+        val selectFileButton: Button = binding.selectDecFile
+        selectFileButton.setOnClickListener {
+            // File manager selection
+            val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
+                addCategory(Intent.CATEGORY_OPENABLE)
+                type = "application/octet-stream"
+
+                // Optionally, specify a URI for the file that should appear in the
+                // system file picker when it loads.
+                putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
+            }
+            startActivityForResult(intent, 1)
+        }
+
         val button: Button = binding.decryptButton
         button.setOnClickListener {
             if (binding.editTextPasswordD.text.isEmpty()) {
                 Toast.makeText(requireActivity(), "Enter a password!", Toast.LENGTH_SHORT).show()
             } else {
-                // File manager selection
-                val intent = Intent(Intent.ACTION_OPEN_DOCUMENT).apply {
-                    addCategory(Intent.CATEGORY_OPENABLE)
-                    type = "application/octet-stream"
-
-                    // Optionally, specify a URI for the file that should appear in the
-                    // system file picker when it loads.
-                    putExtra(DocumentsContract.EXTRA_INITIAL_URI, "/")
-                }
-                startActivityForResult(intent, 1)
+                DecryptData(fileUri!!)
             }
 
         }
@@ -155,6 +163,7 @@ class DecryptFragment : Fragment() {
 
     }
 
+    @SuppressLint("SetTextI18n")
     override fun onActivityResult(requestCode: Int, resultCode: Int, resultData: Intent?) {
 
         super.onActivityResult(requestCode, resultCode, resultData)
@@ -162,7 +171,8 @@ class DecryptFragment : Fragment() {
             // The result data contains a URI for the document or directory that
             // the user selected.
             resultData?.data?.also { uri ->
-                DecryptData(uri)
+                fileUri = uri
+                binding.selectDecFile.text = "{ ${File(uri.path!!).name} }"
             }
         } else if (requestCode == 2 && resultCode == Activity.RESULT_OK) {
             resultData?.data.also { uri ->

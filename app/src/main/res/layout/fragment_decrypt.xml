@@ -7,6 +7,58 @@
     tools:context=".ui.Decrypt.DecryptFragment">
 
     <Button
+        android:id="@+id/selectDecFile"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="70dp"
+        android:layout_marginTop="8dp"
+        android:layout_marginEnd="70dp"
+        android:layout_marginBottom="40dp"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/editTextPasswordD"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:text="@string/select_file"
+        android:textAllCaps="false"/>
+
+    <EditText
+        android:id="@+id/editTextPasswordD"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:ems="10"
+        android:inputType="text"
+        android:hint="@string/password"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="70dp"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/decryptButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="LabelFor,MissingConstraints,TextFields"
+        android:importantForAutofill="no" />
+
+    <CheckBox
+        android:id="@+id/delCheckBox"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/delete_encrypted_file"
+        android:ems="10"
+        android:hint="@string/password"
+        android:layout_marginStart="70dp"
+        android:layout_marginEnd="70dp"
+        android:layout_marginTop="140dp"
+        android:textAlignment="textStart"
+        android:textSize="20sp"
+        app:layout_constraintBottom_toBottomOf="@id/decryptButton"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="MissingConstraints" />
+
+    <Button
         android:id="@+id/decryptButton"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -20,44 +72,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         android:text="@string/decrypt_file"
-        tools:layout_editor_absoluteX="276dp"
-        tools:layout_editor_absoluteY="651dp" />
-
-    <EditText
-        android:id="@+id/editTextPasswordD"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="text"
-        android:text=""
-        android:hint="@string/password"
-        tools:layout_editor_absoluteX="100dp"
-        tools:layout_editor_absoluteY="81dp"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="8dp"
-        android:layout_marginEnd="70dp"
-        android:textAlignment="textStart"
-        android:textSize="20sp"
-        tools:ignore="LabelFor,MissingConstraints,TextFields"
-        android:importantForAutofill="no" />
-
-    <CheckBox
-        android:id="@+id/delCheckBox"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/delete_encrypted_file"
-        tools:layout_editor_absoluteX="81dp"
-        tools:layout_editor_absoluteY="180dp"
-        app:layout_constraintBottom_toBottomOf="@id/decryptButton"
-        android:ems="10"
-        android:hint="@string/password"
-        android:layout_marginBottom="100dp"
-        android:layout_marginStart="70dp"
-        android:layout_marginTop="30dp"
-        android:layout_marginEnd="70dp"
-        android:textAlignment="textStart"
-        android:textSize="20sp"
-        tools:ignore="MissingConstraints" />
-
+        android:textAllCaps="false"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

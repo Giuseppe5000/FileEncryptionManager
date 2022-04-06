@@ -1,13 +1,13 @@
 <resources>
     <string name="app_name">FileEncryptionManager</string>
-    <string name="title_home">Encrypt</string>
-    <string name="title_dashboard">Decrypt</string>
-    <string name="title_notifications">Export</string>
+    <string name="title_encrypt">Encrypt</string>
+    <string name="title_decrypt">Decrypt</string>
+    <string name="title_export">Export</string>
     <string name="encrypt_file">Encrypt file</string>
     <string name="decrypt_file">Decrypt file</string>
     <string name="password">Password</string>
     <string name="delete_encrypted_file">Delete encrypted file</string>
-    <string name="export">Export</string>
     <string name="export_db_data">Export DB Data</string>
     <string name="import_db_data">Import DB Data</string>
+    <string name="select_file">Select file</string>
 </resources>

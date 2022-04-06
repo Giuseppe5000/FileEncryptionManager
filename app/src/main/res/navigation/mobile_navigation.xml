@@ -3,24 +3,24 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/mobile_navigation"
-    app:startDestination="@+id/navigation_home">
+    app:startDestination="@+id/navigation_encrypt">
 
     <fragment
-        android:id="@+id/navigation_home"
+        android:id="@+id/navigation_encrypt"
         android:name="com.example.fileencryptionmanager.ui.Encrypt.EncryptFragment"
-        android:label="@string/title_home"
+        android:label="@string/title_encrypt"
         tools:layout="@layout/fragment_encrypt" />
 
     <fragment
-        android:id="@+id/navigation_dashboard"
+        android:id="@+id/navigation_decrypt"
         android:name="com.example.fileencryptionmanager.ui.Decrypt.DecryptFragment"
-        android:label="@string/title_dashboard"
+        android:label="@string/title_decrypt"
         tools:layout="@layout/fragment_decrypt" />
 
     <fragment
-        android:id="@+id/navigation_notifications"
+        android:id="@+id/navigation_export"
         android:name="com.example.fileencryptionmanager.ui.Export.ExportFragment"
-        android:label="@string/title_notifications"
+        android:label="@string/title_export"
         tools:layout="@layout/fragment_export" />
 
 
